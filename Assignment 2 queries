@@ -1,0 +1,55 @@
+Question 1: From the following table of user IDs, actions, and dates, write a query to return the publication and cancellation rate for each user.
+
+SELECT user_id, sum(CASE WHEN action = 'start' THEN 1 ELSE 0 END) AS starts, sum(CASE WHEN action = 'cancel' THEN 1 ELSE 0 END) AS cancels, 
+sum(CASE WHEN action = 'publish' THEN 1 ELSE 0 END) AS publishes
+FROM users
+GROUP BY 1
+ORDER BY 1;
+
+SELECT user_id, 1.0*publishes/starts AS publish_rate, 1.0*cancels/starts AS cancel_rate
+FROM users;
+
+Question 2: From the following table containing a list of dates and items ordered, write a query to return the most frequent item ordered on each date. 
+Return multiple items in the case of a tie.
+
+SELECT date, item, count(*) AS item_count
+FROM items
+GROUP BY 1, 2
+ORDER BY 1;
+
+SELECT *, rank() OVER (
+PARTITION by date
+ORDER BY item_count DESC) AS date_rank
+FROM items;
+
+SELECT date, item
+FROM table2
+WHERE date_rank = 1;
+
+Question3: 5)	A company defines its super users as those who have made at least two transactions. From the following table, write a query to return, for each user,
+the date when they become a super user, ordered by oldest super users first.Users who are not super users should also be present in the table.
+
+table 1 AS(
+SELECT *, row_number() OVER (
+PARTITION by user_id
+ORDER BY transaction_date ASC) AS tran_number
+FROM users);
+
+table2 AS (
+SELECT user_id, transaction_date
+FROM table1
+WHERE transaction_number = 2);
+
+table 3 AS (
+SELECT DISTINCT user_id
+FROM users);
+
+SELECT table3.user_id, transaction_date AS superuser_date
+FROM table3
+LEFT JOIN table2
+ON table3.user_id = table2.user_id
+ORDER BY 2;
+
+
+
+
